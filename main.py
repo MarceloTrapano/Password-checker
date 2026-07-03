@@ -1,6 +1,15 @@
-def main():
-    print("Hello from password-checker!")
+from fastapi import FastAPI
+
+from src import PasswordModel
+
+app = FastAPI()
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/")
+def home():
+    return {"message": "Hello there! This is password checker! Please send your password check via our API!"}
+
+
+@app.post("/check_password")
+def read_root(package: PasswordModel):
+    return package.password
