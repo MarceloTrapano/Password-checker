@@ -1,5 +1,5 @@
 from enum import Enum
-
+from typing import Self
 
 SATISFACTION_SCORE: int = 3
 
