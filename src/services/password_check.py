@@ -1,10 +1,12 @@
 import re
 from zxcvbn import zxcvbn
+import os
 
-from src import PasswordStrength
+from src.common.password_strength import PasswordStrength
 
 
 def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None) -> dict[str, str | int | bool]:
+    password = password.strip()
     password_lower: str = password.lower()
 
     if prev_password:
@@ -50,7 +52,11 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
     if words_detected:
         final_score = max(0, final_score - 1)
 
+    if len(virtual_password) < 15:
+        final_score = max(0, final_score - 1)
+
     final_strength = PasswordStrength.from_score(final_score)
+
     is_compliant = final_strength.score >= 3
 
     return {
