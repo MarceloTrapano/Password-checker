@@ -10,7 +10,7 @@ LEVENSHTEIN_DISTANCE_THRESHOLD: int = 4
 WORD_LENGTH_THRESHOLD: int = 4
 
 
-def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None) -> dict[str, str | int | bool]:
+def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None) -> dict[str, str | int | bool | list[str]]:
     """Check strength of password.
 
     Args:
@@ -104,7 +104,7 @@ def prepare_user_inputs(username: str, email: str) -> list[str]:
     if email:
         inputs.append(email.lower())
 
-        parts: str = email.lower().split('@')
+        parts: list[str] = email.lower().split('@')
         inputs.extend(parts)
 
         domain: str = parts[1]
@@ -115,7 +115,7 @@ def prepare_user_inputs(username: str, email: str) -> list[str]:
         inputs.extend(sub_parts)
 
     filtered_inputs = filter(lambda word: len(
-        word) < WORD_LENGTH_THRESHOLD, inputs)
+        word) >= WORD_LENGTH_THRESHOLD, inputs)
     distinct_inputs = set(filtered_inputs)
     final_inputs = list(distinct_inputs)
 
