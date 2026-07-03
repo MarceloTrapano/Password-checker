@@ -74,8 +74,8 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
     password_status = PasswordStrength.from_score(analysis['score'])
 
     final_score = password_status.score
-    # Penalty for detected word
-    if words_detected and len(virtual_password) < RECOMENDED_PASSWORD_LENGTH:
+    # Penalty for password length between 12 and 15
+    if len(virtual_password) < RECOMENDED_PASSWORD_LENGTH:
         final_score = max(0, final_score - 1)
 
     password_status = PasswordStrength.from_score(final_score)
