@@ -1,98 +1,149 @@
 import re
+from typing import Iterable
+
 from zxcvbn import zxcvbn
-import os
 
 from src.common.password_strength import PasswordStrength
 
 
+LEVENSHTEIN_DISTANCE_THRESHOLD: int = 4
+WORD_LENGTH_THRESHOLD: int = 4
+
+
 def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None) -> dict[str, str | int | bool]:
-    password = password.strip()
+    """Check strength of password.
+
+    Args:
+        password (str): input password.
+        user_inputs (list[str], optional): list with hints for password. Defaults to [].
+        prev_password (str | None, optional): previous password. Defaults to None.
+
+    Returns:
+        dict[str, str | int | bool]: dictionary with password strength information.
+    """
+    password = password.strip()  # parse white spaces
     password_lower: str = password.lower()
+    password_status: PasswordStrength
 
     if prev_password:
         prev_password_lower = prev_password.lower()
         if password_lower == prev_password_lower:
+            password_status = PasswordStrength.VERY_WEAK
             return {
-                "score": 0, "label": "Very weak", "color": "#FF4D4D",
-                "description": "New password cannot be identical to your previous password.", "is_compliant": False
+                "score": password_status.score, "label": password_status.label, "color": password_status.color,
+                "description": "New password cannot be identical to your previous password.", "is_compliant": password_status.is_compliant
             }
 
-        if _levenshtein_distance(password_lower, prev_password_lower) < 4:
+        if _levenshtein_distance(password_lower, prev_password_lower) < LEVENSHTEIN_DISTANCE_THRESHOLD:
+            password_status = PasswordStrength.VERY_WEAK
             return {
-                "score": 1, "label": "Weak", "color": "#FF944D",
-                "description": "Password is too similar to your previous password. Please make more substantial changes.", "is_compliant": False
+                "score": password_status.score, "label": password_status.label, "color": password_status.color,
+                "description": "Password is too similar to your previous password. Please make more substantial changes.", "is_compliant": password_status.is_compliant
             }
 
         user_inputs.append(prev_password_lower)
 
-    sorted_inputs = sorted(list(set(user_inputs)), key=len, reverse=True)
-    virtual_password = password_lower
+    sorted_inputs: list[str] = sorted(
+        list(set(user_inputs)), key=len, reverse=True)
+    virtual_password: str = password_lower
 
-    words_detected = []
+    words_detected: list[str] = []
     for item in sorted_inputs:
-        if len(item) >= 3 and item in virtual_password:
+        if item in virtual_password:
             words_detected.append(item)
             virtual_password = virtual_password.replace(item, "*")
 
     if len(virtual_password) < 12:
-        strength = PasswordStrength.VERY_WEAK
-        desc = "Password is too short."
+        password_status = PasswordStrength.VERY_WEAK
+        desc: str = "Password is too short."
         if words_detected:
             desc = f"Password relies too heavily on contextual data ({', '.join(words_detected)}). Its effective cryptographic length is too short."
 
         return {
-            "score": strength.score, "label": strength.label, "color": strength.color,
-            "description": desc, "is_compliant": False
+            "score": password_status.score, "label": password_status.label, "color": password_status.color,
+            "description": desc, "is_compliant": password_status.is_compliant
         }
 
     analysis = zxcvbn(password, user_inputs=user_inputs)
-    strength = PasswordStrength.from_score(analysis['score'])
+    password_status = PasswordStrength.from_score(analysis['score'])
 
-    final_score = strength.score
+    final_score = password_status.score
     if words_detected:
         final_score = max(0, final_score - 1)
 
     if len(virtual_password) < 15:
         final_score = max(0, final_score - 1)
 
-    final_strength = PasswordStrength.from_score(final_score)
-
-    is_compliant = final_strength.score >= 3
+    password_status = PasswordStrength.from_score(final_score)
 
     return {
-        "score": final_strength.score,
-        "label": final_strength.label,
-        "color": final_strength.color,
-        "description": final_strength.description if is_compliant else "Contains weak patterns or personal info.",
-        "is_compliant": is_compliant,
+        "score": password_status.score,
+        "label": password_status.label,
+        "color": password_status.color,
+        "description": password_status.description if password_status.is_compliant else "Contains weak patterns or personal info.",
+        "is_compliant": password_status.is_compliant,
         "suggestions": analysis['feedback']['suggestions']
     }
 
 
-def prepare_user_inputs(username, email):
-    inputs = []
+def prepare_user_inputs(username: str, email: str) -> list[str]:
+    """Prepare user inputs list for better password protection.
+
+    Args:
+        username (str): username.
+        email (str): email adress.
+
+    Returns:
+        list[str]: list of extracted words from username and email adress.
+    """
+    inputs: list[str] = []
+
     if username:
         inputs.append(username.lower())
+
     if email:
         inputs.append(email.lower())
-        parts = email.lower().split('@')
+
+        parts: str = email.lower().split('@')
         inputs.extend(parts)
-        domain = parts[1]
-        domain_name = domain.split('.')[0]
+
+        domain: str = parts[1]
+        domain_name: str = domain.split('.')[0]
         inputs.append(domain_name)
-        sub_parts = re.split(r'[._-]', parts[0])
+
+        sub_parts: str = re.split(r'[._-]', parts[0])
         inputs.extend(sub_parts)
-    return list(set(filter(None, inputs)))
+
+    filtered_inputs = filter(lambda word: len(
+        word) < WORD_LENGTH_THRESHOLD, inputs)
+    distinct_inputs = set(filtered_inputs)
+    final_inputs = list(distinct_inputs)
+
+    return final_inputs
 
 
 def _levenshtein_distance(s1: str, s2: str) -> int:
-    """Calculates the edit distance to prevent minor changes from previous passwords."""
+    """Calculates the edit distance to prevent minor changes from previous passwords.
+
+    Args:
+        s1 (str): first word.
+        s2 (str): second word.
+
+    Returns:
+        int: calculated distance.
+    """
+    current_row: list[int]
+    previous_row: list[int]
+    insertions: int
+    deletions: int
+    substitutions: int
+
     if len(s1) < len(s2):
         return _levenshtein_distance(s2, s1)
     if len(s2) == 0:
         return len(s1)
 
-    previous_row = range(len(s2) + 1)
+    previous_row: Iterable = range(len(s2) + 1)
     for i, c1 in enumerate(s1):
         current_row = [i + 1]
         for j, c2 in enumerate(s2):
