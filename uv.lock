@@ -2,7 +2,8 @@ version = 1
 revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.12' and python_full_version < '3.15'",
     "python_full_version < '3.12'",
 ]
 
@@ -299,7 +300,8 @@ name = "numpy"
 version = "2.5.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.12' and python_full_version < '3.15'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e7/05/3d27272d30698dc0ecb7fdfaa41ad70303b444f81722bb99bce1d818638a/numpy-2.5.0.tar.gz", hash = "sha256:5a129578019311b6e56bdd714250f19b518f7dceeeb8d1af5490f4942d3f891c", size = 20652461, upload-time = "2026-06-21T20:57:51.95Z" }
 wheels = [
@@ -350,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "password-checker"
-version = "0.1.0"
+version = "0.2.0"
 source = { virtual = "." }
 dependencies = [
     { name = "email-validator" },
@@ -358,6 +360,7 @@ dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "requests" },
+    { name = "types-zxcvbn" },
     { name = "uvicorn" },
     { name = "zxcvbn" },
 ]
@@ -368,6 +371,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.139.0" },
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "requests", specifier = ">=2.34.2" },
+    { name = "types-zxcvbn", specifier = ">=4.5.0.20260518" },
     { name = "uvicorn", specifier = ">=0.49.0" },
     { name = "zxcvbn", specifier = ">=4.5.0" },
 ]
@@ -515,6 +519,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/eb/e3/7c1dc7381d9f8ab7d854328ebfa884e62cb3f3d8549ddfd37c7814f42afa/starlette-1.3.1.tar.gz", hash = "sha256:05d0213193f2fbaae60e2ecb593b4add4262ad4e46536b54abe36f11a71724e0", size = 2703240, upload-time = "2026-06-12T09:23:11.602Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/bb/2799cc2ede3ed41131f8975621e7213dfc7ef4acbbaadfa440f32500c370/starlette-1.3.1-py3-none-any.whl", hash = "sha256:c7372aae11c3c3f26a42df7bd626cec2f47d03483d261d369516a615a53714c6", size = 73632, upload-time = "2026-06-12T09:23:10.017Z" },
+]
+
+[[package]]
+name = "types-zxcvbn"
+version = "4.5.0.20260518"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/54/f4fdf18b7e9fe8c961a95ab04fcc6d00ed47b0d8abb5b65d745a90eaf0cd/types_zxcvbn-4.5.0.20260518.tar.gz", hash = "sha256:d95506da8635093576a56386f808fe2a2013da1b91d6c2cc56d1e2a1783cac5f", size = 9576, upload-time = "2026-05-18T06:04:20.079Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/d4/ea0d35a3290168e967895f9d0e5121264fabe6555f57e82033def10b8d02/types_zxcvbn-4.5.0.20260518-py3-none-any.whl", hash = "sha256:763a9d96a2e84357dbe89b751d570474bb91200d3060cbb4cb7b4583db42a946", size = 10830, upload-time = "2026-05-18T06:04:19.291Z" },
 ]
 
 [[package]]

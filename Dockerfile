@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvbin/uv
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+
+RUN /uvbin/uv sync --frozen --no-dev
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["/uvbin/uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
