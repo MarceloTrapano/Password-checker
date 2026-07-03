@@ -11,7 +11,7 @@ class TestPasswordChecker(unittest.TestCase):
     """Password testing environment."""
 
     def _check(self, password: str, username: str = "jkowalski",
-               email: str = "jan.kowalski@securebank.pl", prev_password: str = None) -> dict[str, str | int | bool | list[str]]:
+               email: str = "jan.kowalski@securebank.pl", prev_password: str | None = None) -> dict[str, str | int | bool | list[str]]:
         """Helper to prepare inputs and run the checker."""
         user_inputs: list[str] = prepare_user_inputs(
             username=username, email=email)
@@ -126,7 +126,7 @@ class TestPasswordChecker(unittest.TestCase):
             password=password, username=username, email=email)
 
         self.assertFalse(result["is_compliant"])
-        self.assertIn(username.lower(), result["description"])
+        self.assertIn(username.lower(), result["description"])  # type: ignore
 
 
 if __name__ == "__main__":

@@ -115,7 +115,7 @@ def prepare_user_inputs(username: str, email: str) -> list[str]:
         domain_name: str = domain.split('.')[0]
         inputs.append(domain_name)
 
-        sub_parts: str = re.split(r'[._-]', parts[0])
+        sub_parts: list[str] = re.split(r'[._-]', parts[0])
         inputs.extend(sub_parts)
 
     filtered_inputs = filter(lambda word: len(
@@ -137,7 +137,6 @@ def _levenshtein_distance(s1: str, s2: str) -> int:
         int: calculated distance.
     """
     current_row: list[int]
-    previous_row: list[int]
     insertions: int
     deletions: int
     substitutions: int
@@ -147,7 +146,7 @@ def _levenshtein_distance(s1: str, s2: str) -> int:
     if len(s2) == 0:
         return len(s1)
 
-    previous_row: Iterable = range(len(s2) + 1)
+    previous_row: list[int] = list(range(len(s2) + 1))
     for i, c1 in enumerate(s1):
         current_row = [i + 1]
         for j, c2 in enumerate(s2):
