@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 
 
 class PasswordModel(BaseModel):
+    """Data transfer object for password strength evaluation requests."""
     username: str
     email: EmailStr
     password: str

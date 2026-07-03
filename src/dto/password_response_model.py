@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class PasswordResponseModel(BaseModel):
+    """Structured validation output containing security scores and compliance metrics."""
     score: int = Field(
         ...,
         ge=0,
