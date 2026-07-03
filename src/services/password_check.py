@@ -8,6 +8,8 @@ from src.common.password_strength import PasswordStrength
 
 LEVENSHTEIN_DISTANCE_THRESHOLD: int = 4
 WORD_LENGTH_THRESHOLD: int = 4
+MINIMAL_PASSWORD_LENGTH: int = 12
+RECOMENDED_PASSWORD_LENGTH: int = 15
 
 
 def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None) -> dict[str, str | int | bool | list[str]]:
@@ -27,13 +29,14 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
 
     if prev_password:
         prev_password_lower = prev_password.lower()
-        if password_lower == prev_password_lower:
+        if password_lower == prev_password_lower:  # Previous password is same
             password_status = PasswordStrength.VERY_WEAK
             return {
                 "score": password_status.score, "label": password_status.label, "color": password_status.color,
                 "description": "New password cannot be identical to your previous password.", "is_compliant": password_status.is_compliant
             }
 
+        # Previous password is too similar
         if _levenshtein_distance(password_lower, prev_password_lower) < LEVENSHTEIN_DISTANCE_THRESHOLD:
             password_status = PasswordStrength.VERY_WEAK
             return {
@@ -43,17 +46,20 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
 
         user_inputs.append(prev_password_lower)
 
+    # Sorting is necessary to exclude word inclusion
     sorted_inputs: list[str] = sorted(
         list(set(user_inputs)), key=len, reverse=True)
     virtual_password: str = password_lower
 
     words_detected: list[str] = []
+    # Mask words with single token
     for item in sorted_inputs:
         if item in virtual_password:
             words_detected.append(item)
             virtual_password = virtual_password.replace(item, "*")
 
-    if len(virtual_password) < 12:
+    # Handle true password length
+    if len(virtual_password) < MINIMAL_PASSWORD_LENGTH:
         password_status = PasswordStrength.VERY_WEAK
         desc: str = "Password is too short."
         if words_detected:
@@ -68,10 +74,8 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
     password_status = PasswordStrength.from_score(analysis['score'])
 
     final_score = password_status.score
-    if words_detected:
-        final_score = max(0, final_score - 1)
-
-    if len(virtual_password) < 15:
+    # Penalty for detected word
+    if words_detected and len(virtual_password) < RECOMENDED_PASSWORD_LENGTH:
         final_score = max(0, final_score - 1)
 
     password_status = PasswordStrength.from_score(final_score)
