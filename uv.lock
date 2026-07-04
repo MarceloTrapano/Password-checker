@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "password-checker"
-version = "0.2.0"
+version = "0.5.0"
 source = { virtual = "." }
 dependencies = [
     { name = "email-validator" },
