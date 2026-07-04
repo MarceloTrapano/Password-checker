@@ -30,6 +30,8 @@ def password_check(password: str, user_inputs: list[str] | None = None, prev_pas
     password = password.strip()  # parse white spaces
     password_lower: str = password.lower()
     password_status: PasswordStrength
+    if user_inputs is None:
+        user_inputs = []
 
     if common_passwords and password_lower in common_passwords:
         logger.info("Password has been detected in database.")
