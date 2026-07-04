@@ -1,7 +1,9 @@
 import re
+import logging
 
 from zxcvbn import zxcvbn
 
+from src.common.logger import password_logger
 from src.common.password_strength import PasswordStrength
 
 
@@ -9,6 +11,8 @@ LEVENSHTEIN_DISTANCE_THRESHOLD: int = 4
 WORD_LENGTH_THRESHOLD: int = 4
 MINIMAL_PASSWORD_LENGTH: int = 12
 RECOMENDED_PASSWORD_LENGTH: int = 15
+
+logger = password_logger(__name__)
 
 
 def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None) -> dict[str, str | int | bool | list[str]]:
@@ -22,6 +26,7 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
     Returns:
         dict[str, str | int | bool]: dictionary with password strength information.
     """
+    logger.info("Checking password")
     password = password.strip()  # parse white spaces
     password_lower: str = password.lower()
     password_status: PasswordStrength
@@ -30,6 +35,7 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
         prev_password_lower = prev_password.lower()
         if password_lower == prev_password_lower:  # Previous password is same
             password_status = PasswordStrength.VERY_WEAK
+            logger.info("Password classified as VERY_WEAK")
             return {
                 "score": password_status.score, "label": password_status.label, "color": password_status.color,
                 "description": "New password cannot be identical to your previous password.", "is_compliant": password_status.is_compliant
@@ -38,6 +44,7 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
         # Previous password is too similar
         if _levenshtein_distance(password_lower, prev_password_lower) < LEVENSHTEIN_DISTANCE_THRESHOLD:
             password_status = PasswordStrength.VERY_WEAK
+            logger.info("Password classified as WEAK")
             return {
                 "score": password_status.score, "label": password_status.label, "color": password_status.color,
                 "description": "Password is too similar to your previous password. Please make more substantial changes.", "is_compliant": password_status.is_compliant
@@ -63,7 +70,7 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
         desc: str = "Password is too short."
         if words_detected:
             desc = f"Password relies too heavily on contextual data ({', '.join(words_detected)}). Its effective cryptographic length is too short."
-
+        logger.info("Password classified as VERY_WEAK")
         return {
             "score": password_status.score, "label": password_status.label, "color": password_status.color,
             "description": desc, "is_compliant": password_status.is_compliant
@@ -78,6 +85,7 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
         final_score = max(0, final_score - 1)
 
     password_status = PasswordStrength.from_score(final_score)
+    logger.info(f"Password classified as {password_status.label}")
 
     return {
         "score": password_status.score,

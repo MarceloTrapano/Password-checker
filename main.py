@@ -1,7 +1,11 @@
 from fastapi import FastAPI
+from fastapi import status, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 import os
 
-from src import PasswordModel, PasswordResponseModel, password_check, prepare_user_inputs
+from src import PasswordModel, PasswordResponseModel, password_check, prepare_user_inputs, password_logger
 
 
 LANGUAGE_PATH: str = 'lang-english.txt'
@@ -9,6 +13,8 @@ with open(os.path.abspath(LANGUAGE_PATH), "r") as f:
     GLOBAL_WORDS: list[str] = f.read().splitlines()
 
 app: FastAPI = FastAPI()
+
+logger = password_logger(__name__)
 
 
 @app.get("/")
@@ -18,6 +24,7 @@ def home() -> dict[str, str]:
     Returns:
         dict[str, str]: welcoming message.
     """
+    logger.info("Recieved get request!")
     return {"message": "Hello there! This is password checker! Please send your password check via our API!"}
 
 
@@ -31,6 +38,7 @@ def post_password(package: PasswordModel) -> dict[str, str | int | bool | list[s
     Returns:
         dict[str, str | int | bool | list[str]]: password strength evaluation.
     """
+    logger.info("Recieved password to check.")
     user_inputs: list[str] = prepare_user_inputs(
         username=package.username, email=package.email)
 
@@ -38,3 +46,24 @@ def post_password(package: PasswordModel) -> dict[str, str | int | bool | list[s
     response: dict[str, str | int | bool | list[str]] = password_check(
         password=package.password, user_inputs=user_inputs, prev_password=package.prev_password)
     return response
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """
+    Handles Pydantic validation errors by logging the details and returning a 422 response.
+
+    Args:
+        request (Request): the incoming HTTP request object.
+        exc (RequestValidationError): the exception containing the validation errors.
+
+    Returns:
+        JSONResponse: a response with status 422 containing the validation details.
+    """
+    logger.error(
+        f"Validation error: {exc.errors()} | Request path: {request.url.path}")
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors()},
+    )

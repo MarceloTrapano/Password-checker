@@ -1,6 +1,11 @@
 from enum import Enum
 from typing import Self
 
+from src.common.logger import password_logger
+
+logger = password_logger(__name__)
+
+
 SATISFACTION_SCORE: int = 3
 
 
@@ -48,4 +53,5 @@ class PasswordStrength(Enum):
         for strength in cls:
             if strength.score == score:
                 return strength
+        logger.error("Incorrect score")
         raise ValueError("Incorrect score.")
