@@ -9,8 +9,14 @@ from src import PasswordModel, PasswordResponseModel, password_check, prepare_us
 
 
 LANGUAGE_PATH: str = 'lang-english.txt'
+COMMON_PASSWORDS_PATH: str = 'common_passwords.txt'
 with open(os.path.abspath(LANGUAGE_PATH), "r") as f:
-    GLOBAL_WORDS: list[str] = f.read().splitlines()
+    GLOBAL_WORDS: set[str] = set(f.read().splitlines())
+
+with open(os.path.abspath(COMMON_PASSWORDS_PATH), "r") as f:
+    COMMON_PASSWORDS: set[str] = set(f.read().splitlines())
+
+SENSITIVE_FIELDS: set[str] = {"password", "prev_password"}
 
 app: FastAPI = FastAPI()
 
@@ -44,7 +50,10 @@ def post_password(package: PasswordModel) -> dict[str, str | int | bool | list[s
 
     user_inputs.extend(GLOBAL_WORDS)
     response: dict[str, str | int | bool | list[str]] = password_check(
-        password=package.password, user_inputs=user_inputs, prev_password=package.prev_password)
+        password=package.password,
+        user_inputs=user_inputs,
+        prev_password=package.prev_password,
+        common_passwords=COMMON_PASSWORDS)
     return response
 
 
@@ -60,10 +69,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     Returns:
         JSONResponse: a response with status 422 containing the validation details.
     """
+    sanitized_errors: list[dict] = []
+    for error in exc.errors():
+        error = dict(error)
+        if error.get("loc") and error["loc"][-1] in SENSITIVE_FIELDS:
+            error["input"] = "***REDACTED***"
+        sanitized_errors.append(error)
+
     logger.error(
-        f"Validation error: {exc.errors()} | Request path: {request.url.path}")
+        f"Validation error: {sanitized_errors} | Request path: {request.url.path}")
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors()},
+        content={"detail": sanitized_errors},
     )

@@ -15,7 +15,7 @@ RECOMENDED_PASSWORD_LENGTH: int = 15
 logger = password_logger(__name__)
 
 
-def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None) -> dict[str, str | int | bool | list[str]]:
+def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None, common_passwords: set[str] | None = None) -> dict[str, str | int | bool | list[str]]:
     """Check strength of password.
 
     Args:
@@ -30,6 +30,16 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
     password = password.strip()  # parse white spaces
     password_lower: str = password.lower()
     password_status: PasswordStrength
+
+    if common_passwords and password in common_passwords:
+        logger.info("Password has been detected in database.")
+        return {
+            "score": 0,
+            "label": "Very weak",
+            "color":  "#FF4D4D",
+            "description": "Password has been detected in database.",
+            "is_compliant": False
+        }
 
     if prev_password:
         prev_password_lower = prev_password.lower()
@@ -77,6 +87,7 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
         }
 
     analysis = zxcvbn(password, user_inputs=user_inputs)
+
     password_status = PasswordStrength.from_score(analysis['score'])
 
     final_score = password_status.score
