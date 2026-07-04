@@ -50,10 +50,10 @@ pip install -r requirements.txt
 Run the app via uvicorn:
 ```bash
 # Using uv
-uv run uvicorn main:app --reload
+uv run uvicorn main:app
 
 # OR using venv
-uvicorn main:app --reload
+uvicorn main:app
 ```
 ---
 ### Docker deployment
