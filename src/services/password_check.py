@@ -15,7 +15,7 @@ RECOMENDED_PASSWORD_LENGTH: int = 15
 logger = password_logger(__name__)
 
 
-def password_check(password: str, user_inputs: list[str] = [], prev_password: str | None = None, common_passwords: set[str] | None = None) -> dict[str, str | int | bool | list[str]]:
+def password_check(password: str, user_inputs: list[str] | None = None, prev_password: str | None = None, common_passwords: set[str] | None = None) -> dict[str, str | int | bool | list[str]]:
     """Check strength of password.
 
     Args:
@@ -31,7 +31,7 @@ def password_check(password: str, user_inputs: list[str] = [], prev_password: st
     password_lower: str = password.lower()
     password_status: PasswordStrength
 
-    if common_passwords and password in common_passwords:
+    if common_passwords and password_lower in common_passwords:
         logger.info("Password has been detected in database.")
         return {
             "score": 0,

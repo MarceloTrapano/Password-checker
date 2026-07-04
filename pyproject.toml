@@ -1,6 +1,6 @@
 [project]
 name = "password-checker"
-version = "0.5.0"
+version = "1.0.1"
 description = "Validate your password via API."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,4 +12,10 @@ dependencies = [
     "types-zxcvbn>=4.5.0.20260518",
     "uvicorn>=0.49.0",
     "zxcvbn>=4.5.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
 ]
